@@ -9,70 +9,34 @@ description: >-
 
 # 个人开发习惯与工作流规范
 
-在开发 macOS 桌面应用、Web 设置向导或进行 GitHub 开源发布时，遵循以下约定。
+在开发 macOS 桌面应用、Web 设置向导或进行 GitHub 开源发布时，严格遵循以下规范与细节文档。
 
 ## 1. 沟通与执行风格
 
-- **语言与表达**：使用**简体中文**回复，风格精简、直奔结果，**不使用 emoji**。
-- **先沟通再动手**：面对开放性需求（如优化、架构调整、GEO、重构等），先列出具体方案供确认，再开始修改；收到明确指令后直接执行到底（修改、编译、安装、验证）。
-- **视觉复用**：设计新界面或向导页时，优先参考用户已有项目（如工业风深色 HUD + 分步式网页工作台）保持风格统一。
+- **语言与表达**：使用**简体中文**回复，精简直奔结果，**不使用 emoji**。
+- **先方案再动手**：面对开放性需求（优化、架构调整、GEO、重构等），先列出具体方案供确认，再开始修改；收到明确指令后直接执行到底（修改、编译、安装、签名、运行校验）。
+- **风格复用**：设计新界面或向导页时，优先复用既有项目已验证的视觉体系，不另起炉灶。
 
-## 2. 产品、UI 与多语言偏好
+## 2. macOS 桌面小组件规范
 
-- **macOS 桌面端形态**：
-  - 偏好原生 **AppKit Liquid Glass** 悬浮桌面组件，搭配**极简 3 项菜单栏托盘**（设置向导、重启、退出）。
-  - 复杂配置统一放在**本地 Web 设置向导（工作台）**中，包含 HUD 状态栏、分步导航、产品渲染预览图与即时生效控件。
-- **桌面小组件交互与视觉规范**：
-  - **防误操作设计**：非按钮区域（如顶部空白区）采用**长按触发拖动（如 `0.25s` 长按阈值）**，防止日常鼠标划过或轻点时误拖走小组件；交互按钮区与拖拽区严格隔离，点击按钮直接响应操作。
-  - **桌面底层常驻与记忆**：固定在桌面层级，不抢占普通应用窗口焦点、不随窗口切换遮挡工作区；拖动后持久化保存位置并在重启后自动恢复。
-  - **玻璃材质、阴影与光效**：采用 `NSVisualEffectView` 毛玻璃底板 + 细腻圆角 + `1px` 棱边高光描边，配合**柔和外投影（Shadow）**确保在浅色/深色壁纸下都有清晰悬浮层次。
-  - **点击与切换动画**：按钮点击带**焦散光晕反馈**，状态切换（如降噪胶囊滑块）使用平滑过渡动画；激活态按钮通过高亮胶囊与微阴影强化对比，信息排版保持精简高对比度。
-- **Web 设置向导视觉与交互风格（参考 Fitbit / Galaxy Buds 工作台）**：
-  - **深色工业风切角美学**：极暗背景（`#060609`）+ 细网格背景（`72px` 网格线）+ 顶部渐变光晕；卡片与按钮采用**斜切角（`clip-path` chamfer 倒角）**替代平庸圆角，主强调色使用荧光绿（`#c1ff12`），数字与状态标签使用等宽字体（`SF Mono`）+ `tabular-nums`。
-  - **工作台布局结构**：居中单栏（约 `660px` 宽），顶部为 Hero 徽章 + 右上角 `EN | 中文` 语言切换 + 实时 **HUD 遥测条**，下方为 **`01` / `02` / `03` 分步式 Stepper 导航**，区块标题统一使用 `01 // SECTION` 编号格式。
-  - **所见即所得与即时生效**：型号/配色选择联动**产品实物渲染预览图**；开关、模式按钮、滑块等调节控件操作后**直接实时生效**（不堆砌多余“保存”按钮），仅硬件写入或校准等一次性动作配明确按钮与短暂提示。
-- **数据可视化与交互**：
-  - 音频/传感器曲线（如 EQ）偏好**柱状图 + 平滑曲线实时联动**，拖拽滑块或柱子时即时更新。
-- **多语言默认策略**：
-  - 桌面组件、菜单栏托盘、Web 向导及 `README.md` **默认使用英文（`en`）**，同时支持实时切换为**简体中文（`zh-CN`）**，且多端语言状态同步。
+详见 [macOS Liquid Glass 桌面小组件规范](./references/macos-widget-spec.md)，核心要点：
+- **桌面底层常驻**：无边框 `NSPanel`（`level = -2147483602`、`CanJoinAllSpaces | Stationary | IgnoresCycle`、`hidesOnDeactivate = NO`），不抢焦点、不遮挡普通窗口；拖动后持久化坐标并做屏幕边界夹紧。
+- **防误操作**：禁用 `movableByWindowBackground`，非按钮区必须**长按 `0.25s`** 才触发拖动；按钮区与拖拽区严格隔离。
+- **玻璃质感与阴影**：**禁用系统黑影**（`hasShadow = NO`、`layer.shadowOpacity = 0.0f`），避免玻璃边缘发灰脏边；使用 `NSGlassEffectView`（macOS 26+）/ `NSVisualEffectView`（降级），配合 **`1px` 棱边高光（`rimGrad`）** 与 **点击激活焦散光晕（`causticsLayer`）**。
+- **极简托盘**：菜单栏仅保留 3 项（`Settings Wizard...`、`Restart`、`Quit`），默认英文，支持实时切换简体中文。
 
-## 3. macOS 构建、图标、签名与运行校验
+## 3. 工业风 Web 设置向导规范
 
-构建和安装 `.NET` macOS 桌面应用（Apple Silicon）时严格按以下流程处理：
+详见 [工业风 Web 设置向导规范](./references/web-workbench-spec.md)，核心要点：
+- **深色工业风切角美学**：`#060609` 极暗背景 + `72px` 透视网格 + 顶部渐变光晕；容器与按钮使用 **`clip-path` 斜切倒角（chamfer）**，荧光绿 `#c1ff12` 主强调色，`SF Mono` + `tabular-nums`。
+- **布局与实时生效**：居中 `660px` 单栏工作台，顶部 Hero + 右上角 `EN | 中文` 切换 + 4 格 **HUD 遥测条**，下方为 **`01 / 02 / 03` 分步 Stepper**（标题 `01 // SECTION`）。
+- **所见即所得**：型号/配色联动产品实物渲染预览图；开关、模式胶囊、滑块操作后**直接实时下发生效**，不设多余保存按钮。
+- **曲线可视化（EQ）**：**9 段垂直柱状图 + SVG 三次贝塞尔平滑曲线**双层联动，拖拽实时重绘、松手立即下发。
 
-1. **单架构发布（`osx-arm64`）**：
-   - 使用 `$HOME/.dotnet-sdk10`（`DOTNET_ROOT=$HOME/.dotnet-sdk10`），**仅发布 `-r osx-arm64`**（避免 Universal `x86_64;arm64` 构建在较新 macOS 上触发 `SIGKILL (Code Signature Invalid)`）。
-   ```bash
-   dotnet publish <Project.csproj> -c Release -r osx-arm64 \
-     -p:UseMacOSSDK=true -p:AllowMissingPrunePackageData=true -p:ValidateXcodeVersion=false
-   ```
-2. **保留应用图标与清理重复包**：
-   - 将 `AppIcon.icns` 复制到 `Contents/Resources/AppIcon.icns`，并确保 `Info.plist` 中 `CFBundleIconFile` 为 `AppIcon.icns`。
-   - 删除 `bin/` 和 `obj/` 目录下的中间 `.app` 包，避免聚焦搜索（Spotlight）和启动台出现重复图标。
-3. **Ad-Hoc 本地签名**：
-   - `codesign --deep` 会漏掉 `MonoBundle/*.dylib`，必须先逐个签名所有 `.dylib`，再签名整个 `.app`：
-   ```bash
-   for f in "/Applications/<App>.app/Contents/MonoBundle/"*.dylib; do
-     codesign --force --sign - "$f" >/dev/null 2>&1
-   done
-   codesign --force --sign - "/Applications/<App>.app"
-   ```
-4. **启动与校验**：
-   - 打开 `/Applications/<App>.app`，并通过 `pgrep -fl "<App>"` 确认进程正常存活。
+## 4. macOS 构建签名与 GitHub GEO 发布
 
-## 4. 开源发布与 GitHub GEO 优化清单
-
-开源或打磨 GitHub 仓库时，按以下清单完善：
-
-- **仓库元数据**：通过 `gh repo edit` 设置高信息密度关键词简介（`description`）和 10 个以上精准 `topics`。
-- **GEO 结构化 `README.md`**：
-  - 顶部放置状态徽章、`English | [简体中文](README.zh-CN.md)` 切换链接与软件截图（`screenshots/`）。
-  - 开头给出清晰的 **TL;DR 定义段**（直接回答项目解决了什么问题）。
-  - 包含**横向对比表格**、**完整支持型号清单**、自然语言 **FAQ 问答区**。
-  - 提供 **GitHub Releases** 预编译包下载步骤，并附上首次打开绕过 Gatekeeper 的命令：`xattr -cr "/Applications/<App>.app"`。
-- **Release 与推送**：
-  - 上传压缩后的预编译 `.app`（`*-arm64.zip`）并撰写结构化中英双语 Release Notes。
-  - 若 `git push` 在 HTTP/2 下卡住，改用 HTTP/1.1 推送：
-    ```bash
-    git -c http.postBuffer=524288000 -c http.version=HTTP/1.1 push origin <branch>
-    ```
+详见 [macOS 构建签名与 GitHub GEO 规范](./references/macos-build-and-geo.md)，核心要点：
+- **单架构发布**：使用 `$HOME/.dotnet-sdk10` 仅发布 `-r osx-arm64`（避免 Universal 构建在 macOS 26/27+ 触发 `SIGKILL`）。
+- **图标与防重复**：保留 `AppIcon.icns`（更新 `CFBundleIconFile`），清理 `bin/` 与 `obj/` 下的中间 `.app` 防止聚焦搜索重复。
+- **逐个签名**：先逐个 `codesign --force --sign -` 所有 `Contents/MonoBundle/*.dylib`，再签 `.app`，启动后用 `pgrep -fl` 验证存活。
+- **GitHub GEO**：设置高信息密度 `description` 与 10+ `topics`；`README.md`（默认英文）+ `README.zh-CN.md` 含 TL;DR、对比表、支持型号全称清单、FAQ 与 `xattr -cr` 解锁提示；`HTTP/1.1` 稳定推送。
