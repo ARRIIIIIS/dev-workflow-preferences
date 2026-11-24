@@ -13,8 +13,17 @@
   - `collectionBehavior = NSWindowCollectionBehaviorCanJoinAllSpaces | NSWindowCollectionBehaviorStationary | NSWindowCollectionBehaviorIgnoresCycle`（全桌面空间可见、调度中心静止、不参与 `Cmd+Tab` / `Cmd+\`` 切换循环）
 - **坐标持久化**：监听 `NSWindowDidMoveNotification` 实时保存窗口原点坐标，启动时读取并做屏幕可见区域夹紧（Clamp）。
 
-## 2. 玻璃材质、阴影处理与光效细节
+## 2. 玻璃材质、连续圆角、暗色适配与对比度规范
 
+- **连续曲面圆角（Continuous Curvature / Squircle）**：
+  - 所有圆角图层统一开启 `layer.cornerCurve = kCACornerCurveContinuous`（Apple 连续曲率超椭圆圆角），禁止使用生硬的默认正圆倒角（`kCACornerCurveCircular`）。
+  - **同心圆角递减**：外容器与内嵌控件遵循同心圆角关系（例如外框 `22pt` → 内部轨道 `18pt` → 选中胶囊 `14pt`，内圆角 = 外圆角 - 内边距），保证视觉弧度严丝合缝。
+- **液态玻璃暗色与浅色外观适配**：
+  - **动态语义颜色**：严禁写死单一黑白文字或底色，文字、图标与微弱底纹统一使用 AppKit 语义化动态色（`[NSColor labelColor]`、`secondaryLabelColor`、`tertiaryLabelColor`、`[[NSColor labelColor] colorWithAlphaComponent:0.08]`）。
+  - **暗色模式 / 深色壁纸适配**：通过 `effectiveAppearance`（或 `viewDidChangeEffectiveAppearance`）感知系统浅色/深色模式切换；在暗色模式下适当收敛高光与焦散光晕透明度，防止深色壁纸上出现刺眼白边或过曝；在浅色模式下保持 `1px` 棱边高光与玻璃轮廓的清晰边界，避免融进亮色背景。
+- **文字与控件对比度要求（可读性优先）**：
+  - 遵循 **WCAG AA** 对比度标准：正文、设备名与电量读数对比度 `≥ 4.5:1`，图标与大尺寸交互控件 `≥ 3:1`。
+  - 不可为了追求“通透感”牺牲可读性：常规信息使用 `labelColor` / `secondaryLabelColor`，仅离线/禁用态允许降为 `tertiaryLabelColor`；激活态胶囊采用高饱和主题底色 + 高对比前景（如纯白文字/图标），状态指示点（绿/橙/灰）保持高辨识度。
 - **禁用系统黑影（关键）**：
   - `gPanel.hasShadow = NO`
   - `NSGlassEffectView` 与内部选中胶囊均设置 `layer.shadowOpacity = 0.0f`

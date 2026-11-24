@@ -22,7 +22,11 @@ description: >-
 详见 [macOS Liquid Glass 桌面小组件规范](./references/macos-widget-spec.md)，核心要点：
 - **桌面底层常驻**：无边框 `NSPanel`（`level = -2147483602`、`CanJoinAllSpaces | Stationary | IgnoresCycle`、`hidesOnDeactivate = NO`），不抢焦点、不遮挡普通窗口；拖动后持久化坐标并做屏幕边界夹紧。
 - **防误操作**：禁用 `movableByWindowBackground`，非按钮区必须**长按 `0.25s`** 才触发拖动；按钮区与拖拽区严格隔离。
-- **玻璃质感与阴影**：**禁用系统黑影**（`hasShadow = NO`、`layer.shadowOpacity = 0.0f`），避免玻璃边缘发灰脏边；使用 `NSGlassEffectView`（macOS 26+）/ `NSVisualEffectView`（降级），配合 **`1px` 棱边高光（`rimGrad`）** 与 **点击激活焦散光晕（`causticsLayer`）**。
+- **玻璃质感、连续圆角、暗色适配与对比度**：
+  - **连续曲面圆角**：统一开启 `layer.cornerCurve = kCACornerCurveContinuous`（Squircle），并保持外框/轨道/胶囊同心圆角递减。
+  - **暗色与浅色适配**：统一使用 `labelColor` / `secondaryLabelColor` 等动态语义色并响应 `effectiveAppearance`，在深色壁纸下收敛高光防止过曝、浅色壁纸下保持边界清晰。
+  - **对比度要求**：正文与数值满足 `≥ 4.5:1`、图标与大控件 `≥ 3:1`（WCAG AA），不因追求通透牺牲可读性。
+  - **去黑影与光效**：**禁用系统黑影**（`hasShadow = NO`、`layer.shadowOpacity = 0.0f`）防边缘发灰，使用 `NSGlassEffectView` / `NSVisualEffectView` + `1px` 棱边高光 + 点击激活焦散光晕。
 - **极简托盘**：菜单栏仅保留 3 项（`Settings Wizard...`、`Restart`、`Quit`），默认英文，支持实时切换简体中文。
 
 ## 3. 工业风 Web 设置向导规范
